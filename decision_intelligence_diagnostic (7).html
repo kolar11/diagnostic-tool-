@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Intelligence Diagnostic — Find Your Project's Hidden Gaps</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#008BD2;--blue-dk:#006fa8;--blue-lt:#e6f5fc;--slate:#596060;--slate-lt:#eaecec;--silver:#B7B5B6;--navy:#0C2440;--white:#ffffff;--black:#0f0f0f;--danger:#C04828;--amber:#BA7517}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden}
+
+/* ── HERO — centred ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:60px 24px;position:relative;overflow:hidden}
+.hero-glow{position:absolute;top:-180px;right:-180px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(0,139,210,.11) 0%,transparent 68%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:-80px;left:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(0,139,210,.06) 0%,transparent 70%);pointer-events:none}
+.hero-tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:20px;opacity:0;animation:fu .5s ease .1s forwards}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(32px,5.5vw,64px);font-weight:900;line-height:1.1;max-width:820px;margin-bottom:16px;opacity:0;animation:fu .6s ease .28s forwards}
+.hero h1 em{color:var(--blue);font-style:normal}
+.hero-sub{font-size:clamp(14px,1.9vw,18px);color:rgba(255,255,255,.62);max-width:580px;line-height:1.68;margin-bottom:20px;opacity:0;animation:fu .6s ease .44s forwards}
+.research-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(0,139,210,.1);border:1px solid rgba(0,139,210,.28);border-radius:3px;padding:8px 16px;font-size:12px;color:var(--blue);margin-bottom:32px;opacity:0;animation:fu .6s ease .52s forwards}
+.hero-stats{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;opacity:0;animation:fu .6s ease .6s forwards}
+.hstat{text-align:center}
+.hstat-num{font-family:'Playfair Display',serif;font-size:34px;font-weight:900;color:var(--blue);display:block;line-height:1}
+.hstat-lbl{font-size:12px;color:rgba(255,255,255,.5);margin-top:5px}
+.hero-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:38px;opacity:0;animation:fu .6s ease .66s forwards}
+.hpill{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:3px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.6)}
+.btn-go{background:var(--blue);color:var(--white);border:none;padding:17px 48px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;border-radius:3px;cursor:pointer;transition:all .2s;opacity:0;animation:fu .6s ease .76s forwards}
+.btn-go:hover{background:var(--blue-dk);transform:translateY(-2px)}
+.hero-note{font-size:11px;color:rgba(255,255,255,.28);margin-top:12px;opacity:0;animation:fu .6s ease .86s forwards}
+
+/* ── QUIZ ── */
+.quiz-wrap{display:none;min-height:100vh;padding:0 0 80px}
+.quiz-wrap.active{display:block}
+.sbar{position:sticky;top:0;background:var(--navy);border-bottom:1px solid rgba(255,255,255,.07);padding:14px 40px 16px;z-index:20}
+.sbar-in{max-width:820px;margin:0 auto}
+.sbar-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.sbar-lbl{font-size:11px;color:rgba(255,255,255,.32);letter-spacing:.1em;text-transform:uppercase}
+.sbar-step{font-size:12px;font-weight:500;color:var(--blue)}
+.ptrack{height:2px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:var(--blue);border-radius:2px;transition:width .4s ease}
+.qbody{max-width:820px;margin:0 auto;padding:36px 40px 20px}
+.dchip{display:inline-block;background:rgba(0,139,210,.1);border:1px solid rgba(0,139,210,.22);border-radius:3px;padding:4px 12px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:16px}
+.qtxt{font-family:'Playfair Display',serif;font-size:clamp(18px,2.8vw,26px);font-weight:700;line-height:1.35;margin-bottom:32px;opacity:0;transform:translateY(12px);transition:all .32s ease;text-align:left}
+.qtxt.in{opacity:1;transform:translateY(0)}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:5px;padding:14px 18px;cursor:pointer;transition:all .18s;display:flex;gap:12px;align-items:flex-start;opacity:0;transform:translateY(8px);font-family:'DM Sans',sans-serif;text-align:left}
+.opt.in{opacity:1;transform:translateY(0)}
+.opt:hover{background:rgba(0,139,210,.1);border-color:var(--blue)}
+.opt.sel{background:rgba(0,139,210,.15);border-color:var(--blue)}
+.odot{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:rgba(255,255,255,.45);flex-shrink:0;transition:all .18s;margin-top:1px}
+.opt.sel .odot{background:var(--blue);color:#fff}
+.otxt{font-size:14px;line-height:1.62;color:rgba(255,255,255,.82);text-align:left}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:26px}
+.btn-bk{background:transparent;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.42);padding:10px 20px;border-radius:3px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .18s}
+.btn-bk:hover{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.7)}
+.btn-nx{background:var(--blue);border:none;color:#fff;padding:12px 32px;border-radius:3px;cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .18s;opacity:.3;pointer-events:none}
+.btn-nx.on{opacity:1;pointer-events:all}
+.btn-nx.on:hover{background:var(--blue-dk)}
+
+/* ── GATE ── */
+.gate-wrap{display:none;min-height:100vh;padding:80px 24px;max-width:580px;margin:0 auto}
+.gate-wrap.active{display:flex;flex-direction:column;justify-content:center}
+.gate-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin-bottom:16px;display:block}
+.gate-h{font-family:'Playfair Display',serif;font-size:clamp(24px,3.5vw,36px);font-weight:700;margin-bottom:12px;line-height:1.2}
+.gate-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:26px;line-height:1.65}
+.gate-prev{background:rgba(0,139,210,.07);border:1px solid rgba(0,139,210,.2);border-radius:6px;padding:16px 20px;margin-bottom:24px}
+.gprev-lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:10px}
+.grow{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;font-size:13px;color:rgba(255,255,255,.74);line-height:1.5}
+.grow::before{content:'→';color:var(--blue);flex-shrink:0}
+.gform{display:flex;flex-direction:column;gap:11px}
+.ginp{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;padding:14px 16px;font-size:14px;color:#fff;font-family:'DM Sans',sans-serif;transition:border-color .18s;width:100%}
+.ginp::placeholder{color:rgba(255,255,255,.27)}
+.ginp:focus{outline:none;border-color:var(--blue)}
+.btn-ul{background:var(--blue);border:none;color:#fff;padding:16px;border-radius:3px;cursor:pointer;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .18s;margin-top:5px}
+.btn-ul:hover{background:var(--blue-dk)}
+.gpriv{font-size:11px;color:rgba(255,255,255,.24);margin-top:8px;text-align:center}
+
+/* ── RESULTS ── */
+.res-wrap{display:none;padding:56px 40px 100px;max-width:860px;margin:0 auto}
+.res-wrap.active{display:block}
+.res-hero{margin-bottom:44px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.06)}
+.res-badge{display:inline-block;background:rgba(0,139,210,.1);border:1px solid rgba(0,139,210,.24);border-radius:3px;padding:5px 14px;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--blue);margin-bottom:18px}
+.res-h{font-family:'Playfair Display',serif;font-size:clamp(24px,3.5vw,38px);font-weight:900;margin-bottom:13px;line-height:1.2}
+.res-h em{color:var(--blue);font-style:normal}
+.res-intro{font-size:14px;color:rgba(255,255,255,.55);line-height:1.72;max-width:680px}
+.rnote{background:rgba(0,139,210,.06);border-left:3px solid var(--blue);border-radius:0 5px 5px 0;padding:14px 18px;margin-bottom:40px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.72}
+.rnote strong{color:var(--blue)}
+.gaps-h{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:5px}
+.gaps-sub{font-size:13px;color:rgba(255,255,255,.38);margin-bottom:22px}
+.gap-card{border-radius:8px;margin-bottom:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.gap-hdr{padding:18px 22px;display:flex;align-items:flex-start;gap:14px}
+.gap-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;flex-shrink:0}
+.gap-dim{font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.gap-name{font-size:15px;font-weight:500;line-height:1.3}
+.gap-bd{padding:0 22px 22px 68px}
+.gap-finding{font-size:13px;color:rgba(255,255,255,.6);line-height:1.75;margin-bottom:15px}
+.gap-imp{border-radius:5px;padding:13px 16px;margin-bottom:13px}
+.gap-imp-lbl{font-size:10px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:5px;font-weight:500}
+.gap-imp-txt{font-size:13px;line-height:1.65;color:rgba(255,255,255,.66)}
+.gap-tsr{background:rgba(0,139,210,.08);border:1px solid rgba(0,139,210,.2);border-radius:5px;padding:13px 16px}
+.gap-tsr-lbl{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--blue);margin-bottom:5px;font-weight:500}
+.gap-tsr-txt{font-size:13px;color:rgba(255,255,255,.66);line-height:1.65}
+.gap-tsr-lock{font-size:12px;color:var(--blue);margin-top:7px;font-style:italic}
+.aha{background:rgba(89,96,96,.12);border:1px solid rgba(89,96,96,.24);border-radius:10px;padding:28px 32px;margin:36px 0}
+.aha-h{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:10px;line-height:1.3}
+.aha-h em{color:var(--blue);font-style:normal}
+.aha-p{font-size:13px;color:rgba(255,255,255,.54);line-height:1.75;margin-bottom:20px}
+.aha-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.aha-stat{background:rgba(0,139,210,.08);border-radius:5px;padding:14px 10px;text-align:center}
+.aha-n{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--blue);display:block;line-height:1}
+.aha-l{font-size:11px;color:rgba(255,255,255,.42);margin-top:4px;line-height:1.4}
+.aha-foot{font-size:12px;color:rgba(183,181,182,.55);font-style:italic}
+.cta-blk{background:rgba(0,139,210,.1);border:1px solid rgba(0,139,210,.28);border-radius:10px;padding:32px 36px;margin-bottom:30px}
+.cta-blk h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:9px}
+.cta-blk p{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:22px;line-height:1.65}
+.cta-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btnp{background:var(--blue);border:none;color:#fff;padding:14px 30px;border-radius:3px;cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .18s}
+.btnp:hover{background:var(--blue-dk)}
+.btns{background:transparent;border:1px solid rgba(183,181,182,.32);color:rgba(255,255,255,.7);padding:14px 30px;border-radius:3px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;transition:all .18s}
+.btns:hover{border-color:var(--silver)}
+.share-wrap{}
+.share-lbl{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:rgba(183,181,182,.48);margin-bottom:12px}
+.share-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:14px 18px;font-size:13px;color:rgba(255,255,255,.58);line-height:1.65;margin-bottom:11px;white-space:pre-line}
+.btn-cp{background:rgba(89,96,96,.2);border:1px solid rgba(89,96,96,.32);color:rgba(255,255,255,.6);padding:10px 24px;border-radius:3px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .18s}
+.btn-cp:hover{background:rgba(89,96,96,.32)}
+
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- ── HERO — centred ── -->
+<section class="hero" id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <span class="hero-tag">Decision Intelligence Diagnostic</span>
+  <h1>Is your project set up<br>to <em>succeed</em> — or fail?</h1>
+  <p class="hero-sub">Most projects fail before they start. The decisions made in the first 90 days determine everything that follows. Take this 3-minute diagnostic to find out where your project stands.</p>
+  <div class="research-pill">◈ &nbsp;Original PhD research — not found in any textbook or existing PM methodology</div>
+  <div class="hero-stats">
+    <div class="hstat"><span class="hstat-num">50%</span><div class="hstat-lbl">Faster delivery proven</div></div>
+    <div class="hstat"><span class="hstat-num">$5M+</span><div class="hstat-lbl">Savings documented</div></div>
+    <div class="hstat"><span class="hstat-num">5</span><div class="hstat-lbl">Decision dimensions scored</div></div>
+  </div>
+  <div class="hero-pills">
+    <div class="hpill">Decision Intelligence Framework</div>
+    <div class="hpill">Pre-Engagement Alignment</div>
+    <div class="hpill">Government-validated · 12 months</div>
+    <div class="hpill">10 questions · 3 minutes</div>
+  </div>
+  <button class="btn-go" onclick="startDiag()">Start the diagnostic →</button>
+  <p class="hero-note">Free · Instant results · Used by government and infrastructure leaders</p>
+</section>
+
+<!-- ── QUIZ ── -->
+<div class="quiz-wrap" id="quizWrap">
+  <div class="sbar"><div class="sbar-in">
+    <div class="sbar-meta">
+      <span class="sbar-lbl">Decision Intelligence Diagnostic</span>
+      <span class="sbar-step" id="stepLbl">Question 1 of 10</span>
+    </div>
+    <div class="ptrack"><div class="pfill" id="pfill" style="width:10%"></div></div>
+  </div></div>
+  <div class="qbody">
+    <div class="dchip" id="dchip"></div>
+    <div class="qtxt" id="qtxt"></div>
+    <div class="opts" id="opts"></div>
+    <div class="nav">
+      <button class="btn-bk" id="btnBk" onclick="prevQ()">← Back</button>
+      <button class="btn-nx" id="btnNx" onclick="nextQ()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── GATE ── -->
+<div class="gate-wrap" id="gateWrap">
+  <span class="gate-tag">Your diagnostic is complete</span>
+  <h2 class="gate-h">Your three critical gaps are ready</h2>
+  <p class="gate-sub">Enter your details to unlock your personalised gap analysis — including the research finding behind each gap and how to begin addressing it.</p>
+  <div class="gate-prev">
+    <div class="gprev-lbl">What you will receive</div>
+    <div class="grow">Your three highest-priority decision and alignment gaps</div>
+    <div class="grow">The original research finding that explains why each gap exists</div>
+    <div class="grow">The real cost and delivery impact of each gap on your project</div>
+    <div class="grow">A teaser on how each gap can be closed before it compounds</div>
+    <div class="grow">A ready-to-share LinkedIn post with your findings</div>
+  </div>
+  <div class="gform">
+    <input class="ginp" type="text" id="gName" placeholder="Your name" />
+    <input class="ginp" type="email" id="gEmail" placeholder="Work email address" />
+    <input class="ginp" type="text" id="gOrg" placeholder="Organisation / institution" />
+    <input class="ginp" type="text" id="gRole" placeholder="Your role (e.g. Project Director)" />
+    <button class="btn-ul" onclick="showRes()">Unlock my gap analysis →</button>
+  </div>
+  <p class="gpriv">Used only to send your results and occasional Decision Intelligence research. No spam. Unsubscribe anytime.</p>
+</div>
+
+<!-- ── RESULTS ── -->
+<div class="res-wrap" id="resWrap">
+  <div class="res-hero">
+    <div class="res-badge">Your Decision Intelligence Gap Analysis</div>
+    <h2 class="res-h">Here is what your project<br>is <em>not yet seeing</em></h2>
+    <p class="res-intro">These findings come from original PhD research — validated across a live government project portfolio over 12 months. You will not find this in PMBOK, PRINCE2, or any existing project management methodology.</p>
+  </div>
+  <div class="rnote"><strong>Research context:</strong> This diagnostic is built on a proprietary Decision Intelligence Framework developed through PhD-level research in project strategy and decision-making. Tested across a government agency's project portfolio over 12 months — producing 50%+ faster project delivery and multi-million dollar cost savings. The gaps identified below are the same patterns found most consistently in underperforming projects.</div>
+  <div class="gaps-h">Your three critical gaps</div>
+  <p class="gaps-sub">Ranked by research-validated impact on project outcomes</p>
+  <div id="gapCards"></div>
+  <div class="aha">
+    <h3 class="aha-h">Why this is <em>different</em> from everything else</h3>
+    <p class="aha-p">Traditional project management frameworks were built to manage delivery. The Decision Intelligence Framework was built to design the decisions that determine whether delivery succeeds — before the work begins. The gaps above are not execution problems. They are decision architecture problems. Most were locked in long before your project started.</p>
+    <div class="aha-stats">
+      <div class="aha-stat"><span class="aha-n">70%+</span><div class="aha-l">of project failures trace to decisions made in the first 90 days</div></div>
+      <div class="aha-stat"><span class="aha-n">50%</span><div class="aha-l">cost reduction from Pre-Engagement Alignment alone</div></div>
+      <div class="aha-stat"><span class="aha-n">50%+</span><div class="aha-l">faster delivery through Decision Intelligence design</div></div>
+    </div>
+    <p class="aha-foot">Original research findings — not found in any textbook or existing project management methodology</p>
+  </div>
+  <div class="cta-blk">
+    <h3>See these gaps play out in your institution</h3>
+    <p>A 30-minute Decision Intelligence consultation will show you exactly where each gap is already affecting your projects — and what it takes to close them before the damage compounds further.</p>
+    <div class="cta-btns">
+      <button class="btnp" onclick="window.open('https://linkedin.com/in/yourprofile','_blank')">Book a 30-minute consultation →</button>
+      <button class="btns" onclick="window.open('#','_blank')">Download the research paper</button>
+    </div>
+  </div>
+  <div class="share-wrap">
+    <div class="share-lbl">Share your findings on LinkedIn</div>
+    <div class="share-box" id="shareBox"></div>
+    <button class="btn-cp" onclick="copyShare()">Copy to clipboard</button>
+  </div>
+</div>
+
+<script>
+var Q = [
+  /* Q1 — V1 Decision Clarity */
+  {
+    dim: "Decision Intelligence — Clarity",
+    key: "clarity",
+    text: "Before your project started, how clearly were decision rights defined — who decides what, when, and with what authority?",
+    opts: [
+      {t: "Fully documented — every key decision has a named owner and clear criteria.", g: 0},
+      {t: "Mostly clear — most decisions have owners but some gaps exist.", g: 1},
+      {t: "Informally understood — people generally know but it is not written down.", g: 1},
+      {t: "Not defined — decisions are made as they arise by whoever is available.", g: 2}
+    ]
+  },
+  /* Q2 — Information quality heading, expert views, single sentence Option A */
+  {
+    dim: "Decision Intelligence — Information Quality",
+    key: "evidence",
+    text: "How would you describe the quality of information used to make key project decisions?",
+    opts: [
+      {t: "Rigorous — decisions are based on structured data, expert views, and analysis relevant to the decision.", g: 0},
+      {t: "Reasonable — we use available data but it is not always comprehensive or consistently applied.", g: 1},
+      {t: "Inconsistent — sometimes data-driven, often based on experience and intuition depending on who is in the room.", g: 1},
+      {t: "Mostly intuition — we go with what feels right based on experience alone.", g: 2}
+    ]
+  },
+  /* Q3 — Decision speed from V1 */
+  {
+    dim: "Decision Intelligence — Decision Speed",
+    key: "dec_speed",
+    text: "When a major decision needs to be made on your project, how long does it typically take from identifying the need to reaching a decision?",
+    opts: [
+      {t: "Days — there is a clear process and decision-makers are accessible and empowered to decide.", g: 0},
+      {t: "One to two weeks — some process exists but it can be slow due to approvals or unclear ownership.", g: 1},
+      {t: "Weeks to months — unclear ownership and competing priorities create significant delays.", g: 2},
+      {t: "We often avoid making the decision altogether until a crisis forces the issue.", g: 2}
+    ]
+  },
+  /* Q4 — V2 governance, "both formal and informal" removed */
+  {
+    dim: "Decision Intelligence — Governance Mechanisms",
+    key: "governance",
+    text: "How would you describe the governance mechanisms currently guiding your most important project?",
+    opts: [
+      {t: "Predominantly formal governance mechanisms — structured policies, documented processes, and clearly defined accountability frameworks guide how decisions are made and reviewed across the project.", g: 0},
+      {t: "Predominantly informal governance mechanisms — decisions and accountability are guided mainly by relationships, experience, and unwritten norms rather than documented structures or formal processes.", g: 1},
+      {t: "Formal structure exists but informal norms dominate — a governance framework is in place on paper, but how decisions are actually made day-to-day operates largely outside it.", g: 1},
+      {t: "Minimal or absent — governance was not a primary consideration when the project was set up and has developed reactively as issues have emerged.", g: 2}
+    ]
+  },
+  /* Q5 — Pre-project learning */
+  {
+    dim: "Decision Intelligence — Pre-Project Learning",
+    key: "pre_learning",
+    text: "How often does your organisation learn from similar projects before starting a new project?",
+    opts: [
+      {t: "Always — we systematically review lessons, decisions, and outcomes from comparable projects and apply those findings before the new project begins.", g: 0},
+      {t: "Sometimes — we refer to previous projects informally when relevant, but there is no structured process for doing so consistently.", g: 1},
+      {t: "Rarely — we occasionally draw on past experience, but previous project knowledge is not formally captured or made accessible.", g: 2},
+      {t: "Never — each project starts fresh; past project knowledge is not systematically reviewed or applied.", g: 2}
+    ]
+  },
+  /* Q6 — How decisions are made when a problem is encountered */
+  {
+    dim: "Decision Intelligence — Problem-Based Decision Making",
+    key: "problem_dec",
+    text: "When your project encounters an unexpected problem, how does your team typically approach making a decision about it?",
+    opts: [
+      {t: "Analytically — the team first defines the problem carefully, draws on experience from similar situations in past projects, seeks input from relevant individuals and the wider team, and then evaluates options before deciding.", g: 0},
+      {t: "Consultatively — we gather individual and team views before deciding, but we do not systematically reference how similar problems were handled in past projects.", g: 1},
+      {t: "Reactively — the most senior person available makes the call based on their experience; structured problem definition or team input is limited.", g: 2},
+      {t: "Ad hoc — decisions about problems are made quickly by whoever is closest to the issue, with little formal problem definition, reference to past projects, or broader team input.", g: 2}
+    ]
+  },
+  /* Q7 — PEA pre-procurement, changed to "started" with adjusted options */
+  {
+    dim: "Pre-Engagement Alignment — Pre-Procurement Learning",
+    key: "pea_pre",
+    text: "How much did your institution learn about the disciplines, cultures, and working styles of partner firms before procurement started?",
+    opts: [
+      {t: "Extensively — structured learning about each firm's culture, decision style, incentives, and prior cross-disciplinary performance was conducted before the procurement process opened.", g: 0},
+      {t: "Moderately — some background research was done on potential partners before procurement began, but it focused mainly on capability and track record rather than culture or working style.", g: 1},
+      {t: "Minimally — we gathered basic information on potential firms before procurement, but cultural, relational, and decision-style factors were not assessed.", g: 2},
+      {t: "Not at all — the procurement process itself was the first point of engagement; no learning about potential partners was undertaken beforehand.", g: 2}
+    ]
+  },
+  /* Q8 — PEA during engagement — unchanged */
+  {
+    dim: "Pre-Engagement Alignment — Learning During Engagement",
+    key: "pea_dur",
+    text: "During the project, how effectively do cross-disciplinary teams learn from and adapt to each other's ways of working?",
+    opts: [
+      {t: "Very effectively — structured cross-disciplinary learning sessions are built into the project rhythm; knowledge transfer is deliberate and documented.", g: 0},
+      {t: "Moderately — learning happens informally through collaboration, but it is not structured, scheduled, or captured systematically.", g: 1},
+      {t: "Slowly — disciplines tend to work in silos; cross-disciplinary understanding builds only when friction forces direct interaction.", g: 2},
+      {t: "It does not happen — teams deliver their individual scopes and hand off; cross-disciplinary understanding is not a project objective.", g: 2}
+    ]
+  },
+  /* Q9 — Decision Intelligence and Strategic Foresight */
+  {
+    dim: "Decision Intelligence — Strategic Foresight",
+    key: "foresight",
+    text: "When making project decisions, how well does your team explain, predict, or hypothesise the causal chain of events that a decision is likely to set in motion?",
+    opts: [
+      {t: "Systematically — before committing, the team maps out the likely sequence of consequences the decision will trigger, identifies where the chain could break or branch, and stress-tests assumptions about cause and effect.", g: 0},
+      {t: "Partially — key decision-makers consider likely consequences informally, but the causal chain is not mapped, documented, or tested as a team before the decision is made.", g: 1},
+      {t: "Rarely — decisions are evaluated primarily on their immediate intent rather than the sequence of events they are likely to set in motion; downstream consequences emerge as surprises.", g: 2},
+      {t: "Not at all — causal thinking is not part of how decisions are made on this project; consequences are managed as they arise rather than anticipated before the decision is taken.", g: 2}
+    ]
+  },
+  /* Q10 — AI in decision intelligence */
+  {
+    dim: "Decision Intelligence — AI and Decision Support",
+    key: "ai_dec",
+    text: "How does your organisation currently use AI to support decision-making on projects?",
+    opts: [
+      {t: "Actively and deliberately — AI tools are used to analyse information, model decision scenarios, identify risks, and surface options that the team might not otherwise consider; outputs are reviewed critically before any decision is made.", g: 0},
+      {t: "Occasionally and informally — some team members use AI tools on an ad hoc basis for research or drafting, but AI is not formally embedded in the decision-making process.", g: 1},
+      {t: "Rarely — AI is not a meaningful part of how decisions are made on this project; most decision support comes from human experience and manual analysis.", g: 2},
+      {t: "Not at all — AI tools are not used in our project decision-making; we rely entirely on conventional methods and human judgement.", g: 2}
+    ]
+  }
+];
+
+var GL = {
+  clarity: {
+    name: "Decision rights are undefined or informal",
+    dim: "Decision Intelligence — Clarity",
+    finding: "Research finding: Projects without formally documented decision rights spend 30–40% more time in conflict cycles — where the same decisions are relitigated because ownership was never clearly established. This pattern is almost invisible until a major decision is contested, at which point the cost is already locked in.",
+    impact: {lbl:"What this costs your project", txt:"Undefined decision rights create invisible transaction costs. Every contested decision consumes meeting time, leadership bandwidth, and team trust. Over a 12-month project these costs compound into material delays and a culture where people stop making decisions and start escalating everything — slowing the project at the moments it most needs to move.", col:"rgba(192,72,40,.1)", bdr:"rgba(192,72,40,.28)", lc:"#F0997B"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"Decision Architecture Design maps every significant decision type the project will face, assigns clear ownership before the work begins, and builds criteria for escalation and reversal. Institutions that implement this before project kick-off eliminate the single most common source of avoidable project delay."}
+  },
+  evidence: {
+    name: "Key project decisions are made on incomplete or poor-quality information",
+    dim: "Decision Intelligence — Information Quality",
+    finding: "Research finding: The quality of information available at the point of decision is one of the most consistent predictors of decision outcome. Projects that establish information quality standards — including what data must be gathered and what expert views must be sought — before decisions are made produce significantly fewer costly errors in the first 90 days.",
+    impact: {lbl:"What this costs your project", txt:"Decisions made on incomplete or unverified information generate a compounding cost. The immediate decision may be wrong. But more damaging is the ripple — subsequent decisions are built on the same flawed foundation, compounding the original error across the project lifecycle before anyone identifies the root cause.", col:"rgba(192,72,40,.1)", bdr:"rgba(192,72,40,.28)", lc:"#F0997B"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"The framework establishes Information Quality Standards for each class of project decision — defining what sources are required, what expert views must be gathered, and when a decision must be deferred until adequate information is available. Most institutions have never formally defined this. The ones that do make materially fewer costly errors."}
+  },
+  dec_speed: {
+    name: "Major decisions are taking too long to reach",
+    dim: "Decision Intelligence — Decision Speed",
+    finding: "Research finding: Decision latency — the time between identifying a decision need and reaching a decision — is one of the most measurable and consistently underestimated costs in project delivery. Research across government and infrastructure projects found that slow decision cycles are almost always caused by unclear ownership and undefined process, not by the complexity of the decision itself.",
+    impact: {lbl:"What this costs your project", txt:"Every week a significant decision is delayed, the project absorbs costs it did not budget for — team time spent in holding patterns, downstream work that cannot proceed, and options that narrow as time passes. Across a 12-month project, cumulative decision latency regularly accounts for 15–25% of total project delays. And unlike many project risks, this one is entirely addressable before the project starts.", col:"rgba(192,72,40,.1)", bdr:"rgba(192,72,40,.28)", lc:"#F0997B"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"The framework maps every significant decision type your project will face and pre-assigns ownership, process, and timeframes before the work begins. When the decision need arises, the architecture to make it is already in place. Institutions that implement this eliminate decision latency as a recurring cost — not by making faster decisions, but by removing the reasons decisions are slow."}
+  },
+  governance: {
+    name: "Governance mechanisms are not designed for this project",
+    dim: "Decision Intelligence — Governance Design",
+    finding: "Research finding: Generic governance frameworks were designed for the average project. Your project is not average. The mechanisms that matter most are frequently the informal ones — how trust is built, how disagreements are resolved, how decisions escalate — and these are almost never deliberately designed.",
+    impact: {lbl:"What this costs your project", txt:"Governance that does not fit the project creates two failure modes simultaneously. Over-governance produces bureaucratic processes that slow legitimate decisions and train teams to work around the system. Under-governance leaves gaps that informal relationship dynamics fill inconsistently — creating dispute risk that surfaces months later when the project is under pressure.", col:"rgba(186,117,23,.1)", bdr:"rgba(186,117,23,.26)", lc:"#EF9F27"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"Decision Intelligence Governance Design starts with the specific risks, relationships, and decision types your project involves — and builds mechanisms to address them deliberately. The result is governance that project teams actually follow, rather than work around."}
+  },
+  pre_learning: {
+    name: "Your organisation is not learning from similar projects before starting",
+    dim: "Decision Intelligence — Pre-Project Learning",
+    finding: "Research finding: Institutions that systematically review lessons and decisions from comparable projects before starting a new one make significantly fewer avoidable errors in the first 90 days — the period when the most consequential decisions are made and when the cost of ignorance is highest.",
+    impact: {lbl:"What this costs your project", txt:"When a project begins without structured learning from comparable past projects, the team repeats errors that have already been paid for — in another project, another team, sometimes in the same institution. The knowledge existed. The mechanism to access it did not. That gap is a recurring cost across every project your institution runs.", col:"rgba(186,117,23,.1)", bdr:"rgba(186,117,23,.26)", lc:"#EF9F27"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"The framework introduces a Pre-Project Learning Protocol — a structured review of decision logs, outcome data, and governance findings from comparable projects before the new project begins. The most valuable input to your next project is the documented experience of your last one."}
+  },
+  problem_dec: {
+    name: "Problems are resolved reactively rather than through structured decision-making",
+    dim: "Decision Intelligence — Problem-Based Decision Making",
+    finding: "Research finding: How a project team responds to unexpected problems is one of the clearest indicators of its decision intelligence maturity. Teams that define the problem carefully, draw on analogical reasoning from similar past situations, and integrate both individual and collective input before deciding produce solutions that are significantly less likely to require costly reversal.",
+    impact: {lbl:"What this costs your project", txt:"When problems are met with reactive, experience-driven decisions made by the most senior person available, two failure modes emerge consistently. The first is misdiagnosis — the presenting problem is addressed but the root cause is not, so the problem recurs. The second is missed alternatives — the decision is made before better options are identified, because the process did not create space to find them.", col:"rgba(0,139,210,.09)", bdr:"rgba(0,139,210,.24)", lc:"#008BD2"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"The framework introduces a Problem Decision Protocol — a lightweight structured response to unexpected project problems that ensures the team defines the problem before solving it, references analogous situations from comparable projects, captures individual and team input, and evaluates options before committing. The protocol takes minutes. The cost of not having it is measured in rework, disputes, and repeated problems."}
+  },
+  pea_pre: {
+    name: "Partner firms were not assessed for alignment before procurement started",
+    dim: "Pre-Engagement Alignment — Pre-Procurement Learning",
+    finding: "Research finding: Standard procurement processes were designed to assess technical capability and cost. They were not designed to assess the factor our research found to be the most powerful predictor of project cost performance — how well the cultures, incentives, and decision styles of potential firms align with each other and with the project's requirements. And this assessment needs to happen before procurement opens, not after.",
+    impact: {lbl:"What this means for your project", txt:"A team of highly capable firms with misaligned cultures and incentive structures will consistently underperform a team of moderately capable firms who understand and trust each other. By the time procurement closes, the alignment question is largely answered — but almost never asked. The cost of that unasked question is paid across the full project lifecycle.", col:"rgba(0,139,210,.09)", bdr:"rgba(0,139,210,.24)", lc:"#008BD2"},
+    teaser: {lbl:"How Pre-Engagement Alignment closes this gap", txt:"The Pre-Engagement Alignment Framework introduces a structured learning phase before procurement opens — examining the culture, decision style, incentive structure, and prior cross-disciplinary performance of potential partners. This is the most cost-predictive assessment our research identified, and it is almost never conducted before procurement begins."}
+  },
+  pea_dur: {
+    name: "Cross-disciplinary learning is compounding too slowly",
+    dim: "Pre-Engagement Alignment — Learning During Engagement",
+    finding: "Research finding: The performance-enhancing effect of cross-disciplinary familiarity does not plateau at engagement start — it compounds throughout the project. Teams with structured mechanisms for learning from each other during the engagement continue to improve performance and reduce costs over time. Teams without those mechanisms plateau early and stay there.",
+    impact: {lbl:"What this means for your project", txt:"When disciplines work in silos — completing their scope and handing off — the project loses the compounding returns of cross-disciplinary learning. The decisions each discipline makes continue to be made without adequate understanding of their effect on other parts of the project. The result is rework, coordination failures, and disputes that structured mid-engagement learning would have prevented.", col:"rgba(0,139,210,.09)", bdr:"rgba(0,139,210,.24)", lc:"#008BD2"},
+    teaser: {lbl:"How Pre-Engagement Alignment closes this gap", txt:"The framework builds structured cross-disciplinary learning sessions into the project rhythm — quarterly at minimum, monthly for complex projects. These are not team-building exercises. They are structured knowledge transfer events ensuring every discipline understands the decision landscape of every other discipline. The cost impact compounds across the project lifecycle."}
+  },
+  foresight: {
+    name: "Decisions are made without mapping the causal chain they set in motion",
+    dim: "Decision Intelligence — Strategic Foresight",
+    finding: "Research finding: One of the most consistent patterns in underperforming projects is the failure to trace the precise causal chain a decision is likely to trigger before it is made. Teams that can explain, predict, or hypothesise the sequence of events a decision will set in motion — including where that chain could break or branch — make decisions that hold up significantly better under project pressure than teams that evaluate decisions solely on immediate intent.",
+    impact: {lbl:"What this costs your project", txt:"When causal thinking is absent from decision-making, downstream consequences arrive as surprises. Each surprise consumes resources, disrupts sequencing, and forces reactive decisions — which themselves trigger further unanticipated consequences. This compounding chain of surprise-and-react is one of the most expensive patterns in project delivery, and almost always traces back to decisions that were evaluated on their intent rather than their consequences.", col:"rgba(89,96,96,.15)", bdr:"rgba(89,96,96,.3)", lc:"#B7B5B6"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"The framework introduces Causal Chain Mapping — a structured practice embedded into the decision process that requires the team to articulate the sequence of events a decision is likely to produce, identify the assumptions embedded in that sequence, and stress-test the chain for points of failure or unintended branching. This is strategic foresight applied at the decision level. It does not require certainty about the future. It requires rigour about the logic connecting the decision to its consequences — and that logic can always be examined before the decision is made."}
+  },
+  ai_dec: {
+    name: "AI is not being used to enhance project decision-making",
+    dim: "Decision Intelligence — AI and Decision Support",
+    finding: "Research finding: AI-augmented decision-making is emerging as one of the most significant performance differentiators in project delivery. Institutions that deliberately embed AI into the decision process — to analyse information, model scenarios, identify risks, and surface options — are making better decisions faster. Those that do not are competing with one hand tied behind their back.",
+    impact: {lbl:"What this means for your institution", txt:"The gap between institutions that use AI deliberately in decision-making and those that do not is widening rapidly. AI does not replace human judgement — it amplifies it. Teams that use AI to surface options and risks they would not otherwise have considered make more complete decisions in less time. The cost of not using it is not just inefficiency. It is the options you never saw and the risks you never identified.", col:"rgba(89,96,96,.15)", bdr:"rgba(89,96,96,.3)", lc:"#B7B5B6"},
+    teaser: {lbl:"How Decision Intelligence closes this gap", txt:"The Decision Intelligence Framework integrates applied AI into the decision architecture of your project — using AI to analyse comparable project data, model decision scenarios, stress-test options, and identify risks before they become problems. This is not generic AI adoption. It is AI deployed specifically at the decision points where it produces the highest return — and it is a capability your competitors are beginning to develop."}
+  }
+};
+
+var cur = 0;
+var ans = new Array(10).fill(null);
+
+function startDiag() {
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('quizWrap').classList.add('active');
+  renderQ(0);
+}
+
+function renderQ(i) {
+  var q = Q[i];
+  document.getElementById('stepLbl').textContent = 'Question ' + (i+1) + ' of ' + Q.length;
+  document.getElementById('pfill').style.width = ((i+1)/Q.length*100) + '%';
+  document.getElementById('dchip').textContent = q.dim;
+  var qt = document.getElementById('qtxt');
+  qt.classList.remove('in');
+  qt.textContent = q.text;
+  setTimeout(function(){ qt.classList.add('in'); }, 40);
+  var og = document.getElementById('opts');
+  og.innerHTML = '';
+  q.opts.forEach(function(o, j){
+    var b = document.createElement('button');
+    b.className = 'opt' + (ans[i]===j?' sel':'');
+    b.innerHTML = '<div class="odot">' + String.fromCharCode(65+j) + '</div><div class="otxt">' + o.t + '</div>';
+    b.style.transitionDelay = (j*0.055) + 's';
+    b.onclick = (function(jj){ return function(){ selOpt(jj); }; })(j);
+    og.appendChild(b);
+    setTimeout(function(){ b.classList.add('in'); }, 45 + j*60);
+  });
+  document.getElementById('btnBk').style.visibility = i===0 ? 'hidden' : 'visible';
+  updNx();
+}
+
+function selOpt(j) {
+  ans[cur] = j;
+  document.querySelectorAll('.opt').forEach(function(b,i){ b.classList.toggle('sel', i===j); });
+  updNx();
+  if (cur < Q.length-1) setTimeout(function(){ nextQ(); }, 350);
+  else document.getElementById('btnNx').textContent = 'See my gaps →';
+}
+
+function updNx() {
+  document.getElementById('btnNx').classList.toggle('on', ans[cur]!==null);
+}
+
+function nextQ() {
+  if (ans[cur]===null) return;
+  if (cur < Q.length-1) { cur++; renderQ(cur); }
+  else { document.getElementById('quizWrap').classList.remove('active'); document.getElementById('gateWrap').classList.add('active'); }
+}
+
+function prevQ() { if (cur>0){ cur--; renderQ(cur); } }
+
+function calcGaps() {
+  var sc = {};
+  Q.forEach(function(q,i){ if(ans[i]!==null) sc[q.key]=(sc[q.key]||0)+q.opts[ans[i]].g; });
+  return Object.entries(sc).sort(function(a,b){ return b[1]-a[1]; }).slice(0,3).map(function(e){ return e[0]; });
+}
+
+function showRes() {
+  document.getElementById('gateWrap').classList.remove('active');
+  document.getElementById('resWrap').classList.add('active');
+  var gaps = calcGaps();
+  var cols = [
+    {bg:'rgba(192,72,40,.09)', bd:'rgba(192,72,40,.24)', nb:'rgba(192,72,40,.18)', nc:'#F0997B'},
+    {bg:'rgba(0,139,210,.07)', bd:'rgba(0,139,210,.2)',  nb:'rgba(0,139,210,.15)', nc:'#008BD2'},
+    {bg:'rgba(89,96,96,.1)',   bd:'rgba(89,96,96,.22)',  nb:'rgba(89,96,96,.18)',  nc:'#B7B5B6'}
+  ];
+  var container = document.getElementById('gapCards');
+  container.innerHTML = '';
+  gaps.forEach(function(gk, i){
+    var g = GL[gk], c = cols[i];
+    var d = document.createElement('div');
+    d.className = 'gap-card';
+    d.style.cssText = 'background:' + c.bg + ';border-color:' + c.bd;
+    d.innerHTML =
+      '<div class="gap-hdr">' +
+        '<div class="gap-num" style="background:' + c.nb + ';color:' + c.nc + '">' + (i+1) + '</div>' +
+        '<div><div class="gap-dim" style="color:' + c.nc + '">' + g.dim + '</div>' +
+        '<div class="gap-name">' + g.name + '</div></div>' +
+      '</div>' +
+      '<div class="gap-bd">' +
+        '<p class="gap-finding">' + g.finding + '</p>' +
+        '<div class="gap-imp" style="background:' + g.impact.col + ';border:1px solid ' + g.impact.bdr + '">' +
+          '<div class="gap-imp-lbl" style="color:' + g.impact.lc + '">' + g.impact.lbl + '</div>' +
+          '<div class="gap-imp-txt">' + g.impact.txt + '</div>' +
+        '</div>' +
+        '<div class="gap-tsr">' +
+          '<div class="gap-tsr-lbl">' + g.teaser.lbl + '</div>' +
+          '<div class="gap-tsr-txt">' + g.teaser.txt + '</div>' +
+          '<div class="gap-tsr-lock">Full methodology available in a 30-minute consultation →</div>' +
+        '</div>' +
+      '</div>';
+    container.appendChild(d);
+  });
+  document.getElementById('shareBox').textContent =
+    'I just completed the Decision Intelligence Diagnostic for Projects.\n\n' +
+    'Three areas where my project has the most opportunity to strengthen its decision architecture:\n' +
+    '1. ' + GL[gaps[0]].name + '\n' +
+    '2. ' + GL[gaps[1]].name + '\n' +
+    '3. ' + GL[gaps[2]].name + '\n\n' +
+    'What I found most valuable: this diagnostic surfaces the decision and alignment factors that existing project management frameworks were never designed to measure — built on original PhD research and validated across a live government engagement.\n\n' +
+    'If you lead major projects and want to know where your decision architecture stands, it takes 3 minutes.\n\n' +
+    'Take it here: [link]\n\n' +
+    '#DecisionIntelligence #PreEngagementAlignment #ProjectStrategy #GovernmentProjects #Infrastructure';
+}
+
+function copyShare() {
+  navigator.clipboard.writeText(document.getElementById('shareBox').textContent).then(function(){
+    document.querySelector('.btn-cp').textContent = 'Copied!';
+    setTimeout(function(){ document.querySelector('.btn-cp').textContent = 'Copy to clipboard'; }, 2200);
+  });
+}
+</script>
+</body>
+</html>
